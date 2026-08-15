@@ -1,0 +1,4 @@
+Este arquivo marca a raiz do projeto para o pacote {here} do R.
+Com ele, here() resolve os caminhos a partir desta pasta, entao
+here("dados", "chikungunya_2023_2025.csv") funciona em qualquer computador,
+sem voce precisar mexer em caminho nenhum. Nao apague.

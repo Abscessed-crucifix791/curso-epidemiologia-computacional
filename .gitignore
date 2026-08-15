@@ -1,0 +1,21 @@
+# Ambiente do renv (a biblioteca e reconstruida com renv::restore())
+renv/library/
+renv/staging/
+renv/python/
+renv/sandbox/
+
+# Arquivos de sessao do R / Positron
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Saidas renderizadas do relatorio (o aluno gera com o Render)
+relatorio/*.html
+relatorio/*.docx
+relatorio/*.pdf
+relatorio/*_files/
+
+# Excecao: o relatorio final renderizado vai junto, para o aluno ver o resultado
+# pronto ao abrir o repositorio, sem precisar renderizar.
+!relatorio/relatorio-chikungunya.html

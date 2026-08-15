@@ -1,0 +1,390 @@
+---
+title: "Febre de chikungunya no Brasil, 2023 a 2025"
+subtitle: "Relatório epidemiológico reprodutível · SINAN arboviroses"
+author: "Exemplo do curso · MedTrop 2026"
+date: "2026-08-16"
+lang: pt
+format:
+  html:
+    toc: true
+    toc-title: "Neste relatório"
+    number-sections: true
+    theme: cosmo
+    code-copy: true
+    code-fold: true
+    embed-resources: true
+  docx:
+    toc: true
+    number-sections: true
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: scrreprt
+execute:
+  warning: false
+  message: false
+  echo: true
+bibliography: []
+---
+
+## Preparação do ambiente {.unnumbered}
+
+Este bloco carrega os pacotes e a paleta do curso. Ele roda na renderização.
+
+```{r}
+#| label: setup
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+
+# Carrega a paleta EPIC95 do projeto, se o arquivo existir.
+# Caso contrario, define as cores aqui mesmo, para o documento sempre renderizar.
+paleta <- here::here("recursos", "epic95_paleta.R")
+if (file.exists(paleta)) {
+  source(paleta)
+} else {
+  epic95_cores <- c(primaria = "#4f8aac", secundaria = "#03658c",
+                    destaque = "#02735e", neutra = "#ffde59")
+  epic95_estendida <- c("#4f8aac", "#03658c", "#02735e", "#ffde59",
+                        "#7ba8c0", "#3581a8", "#048972", "#ffe887")
+  scale_fill_epic95  <- function(...) ggplot2::scale_fill_manual(values = epic95_estendida, ...)
+  scale_color_epic95 <- function(...) ggplot2::scale_color_manual(values = epic95_estendida, ...)
+  tema_epic95 <- function(base_size = 12) ggplot2::theme_minimal(base_size = base_size)
+}
+```
+
+# Introdução
+
+A febre de chikungunya é uma arbovirose causada pelo vírus CHIKV e transmitida ao
+ser humano pela picada de fêmeas infectadas de *Aedes aegypti*, o mesmo vetor da
+dengue e do zika. O quadro clínico costuma cursar com febre alta de início súbito
+e poliartralgia intensa, muitas vezes incapacitante, com dor articular que pode
+persistir por meses na fase crônica. No Brasil, a doença é de notificação
+compulsória e seus casos alimentam o Sistema de Informação de Agravos de
+Notificação (SINAN), no conjunto das arboviroses. A transmissão acompanha a
+dinâmica do vetor e concentra-se nos meses mais quentes e chuvosos, quando a
+densidade de *Aedes* aumenta.
+
+Este relatório descreve os casos de chikungunya notificados no Brasil entre 2023 e
+2025, a partir dos dados do SINAN, e compara a incidência entre as regiões do
+país. O objetivo é caracterizar os casos por pessoa, tempo e lugar, estimar a taxa
+de incidência por região e quantificar a diferença entre regiões com um modelo de
+regressão de Poisson.
+
+# Métodos
+
+## Fonte dos dados
+
+Os dados provêm do Sistema de Informação de Agravos de Notificação (SINAN), no
+conjunto de arboviroses referente à febre de chikungunya, nos anos de 2023 a
+2025. A fonte primária é o Portal de Dados Abertos do SUS (OpenDataSUS). A
+extração e a preparação seguem o script `R/00_preparar_dados.R` do projeto, que
+baixa os arquivos por ano, seleciona as colunas de interesse didático, decodifica
+os campos, remove dados que identifiquem o paciente e grava o arquivo único
+`dados/chikungunya_2023_2025.csv`, que este relatório lê. Cada registro
+corresponde a uma notificação, com as variáveis: data de notificação
+(`dt_notificacao`), ano, região, sexo, idade, faixa etária, classificação final
+(`classificacao`), critério de confirmação e evolução.
+
+O bloco abaixo carrega esse arquivo.
+
+```{r}
+#| label: acesso-dados
+library(readr)
+library(dplyr)
+library(tibble)
+
+# Em aula, este arquivo e o dado real do SINAN preparado pelo 00_preparar_dados.R.
+# A base sintetica abaixo e so uma rede de seguranca, com as MESMAS colunas.
+caminho <- here::here("dados", "chikungunya_2023_2025.csv")
+
+if (file.exists(caminho)) {
+  chik <- read_csv(caminho, show_col_types = FALSE)
+} else {
+  set.seed(95)
+  n <- 4000
+  datas <- as.Date("2023-01-01") + sample(0:1095, n, replace = TRUE,
+            prob = rep(c(3, 3, 2, 1), length.out = 1096))
+  chik <- tibble(
+    dt_notificacao = datas,
+    ano = as.integer(format(datas, "%Y")),
+    regiao = sample(c("Sudeste", "Nordeste", "Centro-Oeste"), n,
+      replace = TRUE, prob = c(5, 4, 2)),
+    classificacao = sample(
+      c("Chikungunya confirmada", "Descartado", "Outro/ignorado"), n,
+      replace = TRUE, prob = c(6, 3, 1))
+  )
+}
+```
+
+## Limpeza e organização
+
+O tratamento converte `dt_notificacao` para formato de data, deriva o ano a partir
+dela, decodifica a idade e a faixa etária do padrão do SINAN, padroniza a
+classificação final em "Chikungunya confirmada" e "Descartado" e exclui os
+registros sem data de notificação. Todo esse processamento vive no
+`R/00_preparar_dados.R`, de modo que o objeto `chik` já chega limpo ao relatório.
+O bloco abaixo apenas confirma o formato do dado recebido.
+
+```{r}
+#| label: limpeza
+glimpse(chik)
+```
+
+## Indicadores e análise
+
+Foi calculada a taxa de incidência de chikungunya confirmada por 100 mil
+habitantes, por região, tomando os casos confirmados como numerador e a população
+regional como denominador. Para comparar as regiões, ajustou-se um modelo de
+regressão de Poisson ao número de casos, com o logaritmo da população como
+*offset*, o que faz o modelo estimar razões de taxas de incidência e não
+contagens brutas. O Nordeste foi definido como categoria de referência. O
+indicador e o modelo usam apenas os anos fechados de 2023 e 2024. Por fim, a série
+mensal de casos por data de notificação foi examinada quanto a tendência e
+sazonalidade, com a ressalva de que 2025 vem incompleto por atraso de notificação.
+A preparação dos dados que sustenta essas análises está em `R/00_preparar_dados.R`.
+
+# Resultados
+
+## Descrição dos casos
+
+No período de 2023 a 2025, a base reúne `r nrow(chik)` notificações de chikungunya,
+das quais `r sum(chik$classificacao == "Chikungunya confirmada")` foram
+classificadas como confirmadas. As notificações abrangem as diferentes regiões do
+país e distribuem-se ao longo dos três anos por data de notificação. A base registra
+sexo, idade e faixa etária de cada caso, o que permite a caracterização por pessoa;
+por tempo, a data de notificação; e por lugar, a região de residência. A
+distribuição por região aparece agregada nas seções seguintes, e a distribuição
+temporal, na série mensal ao fim dos Resultados.
+
+Os blocos abaixo partem do `chik` carregado nos Métodos. Para o indicador e o
+modelo, agregamos os casos confirmados por região, nos anos fechados de 2023 e
+2024, e juntamos a uma população por região (IBGE, ilustrativa). O ano de 2025
+fica de fora do indicador e do modelo por vir incompleto; ele reaparece na série
+mensal logo adiante, justamente para mostrar o efeito do atraso.
+
+```{r}
+#| label: dados-agregados
+#| code-summary: "Agregação por região (casos confirmados, 2023-2024)"
+library(lubridate)
+
+# Populacao por regiao (IBGE, ilustrativa). Em aula, use a estimativa oficial.
+populacao_regiao <- tribble(
+  ~regiao,         ~populacao,
+  "Norte",          18900000,
+  "Nordeste",       57700000,
+  "Sudeste",        89600000,
+  "Sul",            30400000,
+  "Centro-Oeste",   16700000
+)
+
+# Uma linha por regiao e ano: e este formato que a regressao usa (mais de uma
+# observacao por regiao deixa graus de liberdade para o modelo).
+casos_regiao_ano <- chik |>
+  filter(classificacao == "Chikungunya confirmada", ano %in% 2023:2024) |>
+  count(regiao, ano, name = "casos") |>
+  inner_join(populacao_regiao, by = "regiao")
+
+# Versao agregada por regiao (somando os dois anos), para a tabela e a figura.
+tab <- casos_regiao_ano |>
+  group_by(regiao) |>
+  summarise(casos = sum(casos), populacao = first(populacao), .groups = "drop") |>
+  mutate(
+    incidencia = round(casos / populacao * 1e5, 1)  # por 100 mil habitantes
+  ) |>
+  arrange(desc(incidencia))
+```
+
+## Taxa de incidência por região
+
+A @tbl-incidencia traz a taxa de incidência de chikungunya confirmada por 100 mil
+habitantes, por região.
+
+```{r}
+#| label: tbl-incidencia
+#| tbl-cap: "Casos confirmados, população e taxa de incidência de chikungunya por 100 mil habitantes, por região (2023-2024)."
+library(gt)
+
+tab |>
+  gt() |>
+  cols_label(
+    regiao     = "Região",
+    casos      = "Casos",
+    populacao  = "População",
+    incidencia = "Incidência /100 mil"
+  ) |>
+  fmt_number(columns = c(casos, populacao), sep_mark = ".", decimals = 0) |>
+  fmt_number(columns = incidencia, dec_mark = ",", decimals = 1) |>
+  tab_source_note("Fonte: SINAN arboviroses (Portal de Dados Abertos do SUS). População: IBGE, ilustrativa.")
+```
+
+A incidência de chikungunya confirmada variou entre as regiões, do menor valor,
+`r formatC(tab$incidencia[nrow(tab)], format = "f", digits = 1, decimal.mark = ",")`
+casos por 100 mil habitantes na região `r tab$regiao[nrow(tab)]`, ao maior valor,
+`r formatC(tab$incidencia[1], format = "f", digits = 1, decimal.mark = ",")` por
+100 mil habitantes na região `r tab$regiao[1]`, que concentrou a taxa mais alta do
+período.
+
+## Incidência por região
+
+A @fig-serie mostra a taxa de incidência por região, na paleta do curso.
+
+```{r}
+#| label: fig-serie
+#| fig-cap: "Taxa de incidência de chikungunya confirmada por 100 mil habitantes, por região (2023-2024)."
+#| fig-width: 7
+#| fig-height: 4
+ggplot(tab, aes(x = reorder(regiao, incidencia), y = incidencia)) +
+  geom_col(fill = epic95_cores["primaria"]) +
+  geom_text(aes(label = format(incidencia, decimal.mark = ",")),
+            hjust = -0.15, size = 3.5, color = "#03658c") +
+  coord_flip() +
+  labs(
+    title = "Incidência de chikungunya por região",
+    subtitle = "Casos confirmados, 2023-2024",
+    x = NULL, y = "Casos por 100 mil hab."
+  ) +
+  tema_epic95()
+```
+
+## Modelo de regressão
+
+O bloco abaixo ajusta a regressão de Poisson. A população entra como *offset*,
+para o modelo comparar taxas e não contagens brutas. O Nordeste é a referência.
+
+```{r}
+#| label: modelo-poisson
+#| code-summary: "Regressão de Poisson (razão de taxas por região)"
+# Nordeste como categoria de referencia: as demais regioes sao comparadas com ela.
+# Usa a tabela regiao-ano, que tem mais de uma linha por regiao (o modelo precisa
+# de graus de liberdade; uma linha por regiao deixaria o ajuste saturado).
+dados_modelo <- casos_regiao_ano |>
+  mutate(regiao = relevel(factor(regiao), ref = "Nordeste"))
+
+# Modelo: casos ~ regiao, com a populacao como offset (log).
+# Interpretacao: exp(coef de cada regiao) e a razao de taxas frente ao Nordeste.
+mod_pois <- glm(
+  casos ~ regiao + offset(log(populacao)),
+  family = poisson(link = "log"),
+  data = dados_modelo
+)
+
+# Razao de taxas (IRR) e intervalo de confianca de 95%
+irr <- tibble(
+  termo = names(coef(mod_pois)),
+  irr   = exp(coef(mod_pois)),
+  ic_baixo = exp(confint.default(mod_pois)[, 1]),
+  ic_alto  = exp(confint.default(mod_pois)[, 2])
+) |>
+  filter(termo != "(Intercept)")
+
+irr |>
+  gt() |>
+  fmt_number(columns = c(irr, ic_baixo, ic_alto), dec_mark = ",", decimals = 3) |>
+  cols_label(termo = "Termo", irr = "Razão de taxas",
+             ic_baixo = "IC 95% inf.", ic_alto = "IC 95% sup.")
+```
+
+Tomando o Nordeste como referência, a maior razão de taxas foi a da região
+`r sub("regiao", "", irr$termo[which.max(irr$irr)])`, de
+`r formatC(max(irr$irr), format = "f", digits = 2, decimal.mark = ",")`
+(IC 95% `r formatC(irr$ic_baixo[which.max(irr$irr)], format = "f", digits = 2, decimal.mark = ",")`
+a `r formatC(irr$ic_alto[which.max(irr$irr)], format = "f", digits = 2, decimal.mark = ",")`).
+As demais razões de taxas por região, frente ao Nordeste, constam da tabela acima.
+
+## Série mensal
+
+O bloco abaixo monta a série mensal de casos por data de notificação. A queda no
+fim de 2025 é artefato do atraso de notificação, não diminuição real.
+
+```{r}
+#| label: serie-temporal
+#| fig-cap: "Casos de chikungunya por mês de notificação (2023-2025)."
+#| fig-width: 8
+#| fig-height: 4
+serie <- chik |>
+  mutate(mes = floor_date(dt_notificacao, unit = "month")) |>
+  count(mes, name = "casos")
+
+ggplot(serie, aes(x = mes, y = casos)) +
+  geom_line(color = epic95_cores["primaria"], linewidth = 0.8) +
+  geom_point(color = epic95_cores["secundaria"], size = 1.6) +
+  labs(
+    title = "Casos de chikungunya por mês de notificação",
+    subtitle = "SINAN arboviroses, 2023-2025 (a cauda de 2025 vem incompleta)",
+    x = NULL, y = "Casos notificados"
+  ) +
+  tema_epic95()
+```
+
+A série cobre `r nrow(serie)` meses de notificação. Os casos oscilam ao longo do
+período, com meses de maior e de menor volume, e a cauda de 2025 despenca. Essa
+queda final acompanha o atraso de notificação e não deve ser lida como redução
+real de casos.
+
+# Discussão
+
+O achado principal é a diferença de incidência entre as regiões do país. A região
+com a maior taxa concentrou o maior peso de casos confirmados por habitante, e o
+modelo de Poisson traduziu essa diferença em uma razão de taxas frente ao
+Nordeste. É a comparação entre regiões, e não a contagem absoluta, que aponta onde
+a circulação do vírus foi mais intensa no período. Essa era a pergunta posta na
+Introdução.
+
+O padrão temporal é coerente com o que se espera de uma arbovirose de *Aedes
+aegypti*. A transmissão acompanha a densidade do vetor, que sobe no período quente
+e chuvoso, então a série mensal tende a formar picos sazonais nesses meses. A
+concentração de casos em adultos, sobretudo na população economicamente ativa,
+também é o esperado para a chikungunya, pela exposição ao vetor e pelo padrão de
+busca por atendimento.
+
+A análise tem limites que pesam na leitura. Os dados do SINAN estão sujeitos a
+subnotificação, porque nem todo caso chega ao sistema, e a atraso de notificação,
+que esvazia os meses mais recentes e explica a queda na cauda de 2025. A
+classificação final pode mudar após a investigação, e a incidência aqui usa uma
+população regional ilustrativa, não a estimativa oficial. O modelo é
+deliberadamente simples: compara apenas regiões, sem ajustar por idade, sexo,
+tendência temporal ou dependência espacial, e trata as observações como
+independentes. Razões de taxas dessa forma descrevem a diferença bruta entre
+regiões, não um efeito causal.
+
+Apesar disso, o fluxo é inteiramente reprodutível e pode ser reexecutado sobre
+dados atualizados a cada nova extração, o que o torna útil para a vigilância de
+rotina. Os próximos passos naturais são incorporar a população oficial do IBGE,
+estender o modelo para ajustar por faixa etária e sazonalidade e corrigir o atraso
+de notificação antes de interpretar os meses mais recentes.
+
+# Reprodutibilidade e compartilhamento
+
+Este relatório foi produzido em Quarto Markdown com R. Para reproduzi-lo:
+
+1. Clone o repositório e abra o projeto no Positron (arquivo `.Rproj`).
+2. Rode `source("bootstrap.R")` no Console para instalar e carregar os pacotes na
+   versão registrada, deixando o ambiente pronto.
+3. Rode `R/00_preparar_dados.R` uma vez para baixar do OpenDataSUS e preparar o
+   arquivo `dados/chikungunya_2023_2025.csv` que este relatório lê. O dado que
+   identifica o paciente não é versionado (ver `.gitignore`).
+4. Renderize com as três saídas:
+   `quarto render relatorio-chikungunya.qmd`. Para uma saída só, use
+   `--to html`, `--to docx` ou `--to pdf`. O PDF exige LaTeX
+   (`quarto install tinytex`).
+
+O bloco abaixo registra o ambiente da sessão, para quem for reproduzir bater as
+versões dos pacotes.
+
+```{r}
+#| label: ambiente-sessao
+#| code-summary: "Ambiente da sessão (versões dos pacotes)"
+# Registra as versoes usadas. Ajuda quem for reproduzir a bater o ambiente.
+sessionInfo()
+```
+
+# Referências
+
+- Ministério da Saúde. Sistema de Informação de Agravos de Notificação (SINAN).
+  DATASUS. <https://datasus.saude.gov.br>
+- OpenDataSUS. Portal de Dados Abertos do SUS. Arboviroses.
+  <https://opendatasus.saude.gov.br>
+- Posit PBC. *Quarto* e *Positron IDE*. <https://quarto.org> ·
+  <https://positron.posit.co>
