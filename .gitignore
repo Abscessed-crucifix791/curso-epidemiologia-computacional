@@ -4,6 +4,10 @@ renv/staging/
 renv/python/
 renv/sandbox/
 
+# Intermediarios regeneraveis do dado (o script 02 grava; o 03/04 releem o CSV
+# se faltarem). Nao versionamos: cada aluno gera o seu ao rodar os scripts.
+dados/*.rds
+
 # Arquivos de sessao do R / Positron
 .Rproj.user/
 .Rhistory
