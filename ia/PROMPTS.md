@@ -47,8 +47,14 @@ de erro.
 > notificação, usando `dt_notificacao` e o `ggplot2`, na paleta do projeto
 > (`recursos/epic95_paleta.R`).
 
+> No `R/03_descricao.R`, a partir do mapa por UF que já existe (seção 8), crie um
+> mapa coroplético por município da taxa de incidência por 100 mil habitantes,
+> usando o contorno `geo_municipios.rds` e a população de
+> `recursos/populacao_municipios_2022.csv`. Mantenha as mesmas faixas e cores.
+
 **O que verificar:** a série sobe no período chuvoso, como se espera da
-chikungunya? Os meses estão em ordem?
+chikungunya? Os meses estão em ordem? No mapa, os códigos casaram (o mapa não
+saiu em branco) e a legenda está em faixas por 100 mil?
 
 ## Etapa 4: modelo e série
 

@@ -248,6 +248,129 @@ ggplot(tab, aes(x = reorder(regiao, incidencia), y = incidencia)) +
   tema_epic95()
 ```
 
+## Distribuição espacial da incidência
+
+A comparação por região responde à pergunta principal, mas achata a variação que
+existe dentro de cada região. Os dois mapas a seguir descem a esse detalhe. O
+primeiro pinta cada Unidade da Federação pela taxa de incidência de chikungunya
+confirmada por 100 mil habitantes; o segundo repete a leitura nos 5.570 municípios,
+onde os focos aparecem com nitidez. A cor mostra intensidade por habitante, não
+volume de gente. O denominador é a população residente do Censo 2022 do IBGE.
+
+Os contornos vêm do pacote `geobr`, com os limites oficiais do IBGE. Para o
+relatório abrir sem depender de download, rode uma vez `recursos/preparar_mapas.R`,
+que salva as malhas em `recursos/`.
+
+```{r}
+#| label: preparar-mapas
+#| code-summary: "Casos, população e taxa por UF e por município"
+library(here)
+library(readr)
+library(stringr)
+
+# So desenha os mapas se houver a base espacial (uf e municipio_ibge, que vem do
+# 00_preparar_dados.R) e as malhas ja baixadas. A rede de seguranca sintetica nao
+# tem essas colunas, entao o relatorio segue rendereizando sem os mapas.
+tem_mapa <- all(c("uf", "municipio_ibge") %in% names(chik)) &&
+  file.exists(here("recursos", "geo_uf.rds")) &&
+  file.exists(here("recursos", "geo_municipios.rds")) &&
+  requireNamespace("sf", quietly = TRUE)
+
+if (tem_mapa) {
+  library(sf)
+  geo_uf  <- readRDS(here("recursos", "geo_uf.rds"))
+  geo_mun <- readRDS(here("recursos", "geo_municipios.rds"))
+
+  # Populacao do Censo 2022 (IBGE). O SINAN usa codigo de 6 digitos; o geobr e o
+  # arquivo de populacao usam 7. Cortamos o 7o digito para os codigos casarem.
+  pop_mun <- read_csv(here("recursos", "populacao_municipios_2022.csv"),
+                      show_col_types = FALSE) |>
+    mutate(cod6 = str_sub(as.character(cod_ibge7), 1, 6))
+  pop_uf <- tibble::tribble(
+    ~uf, ~populacao,
+    "11",1581196,"12",830018,"13",3941613,"14",636707,"15",8120131,"16",733759,
+    "17",1511460,"21",6776699,"22",3271199,"23",8794957,"24",3302729,"25",3974687,
+    "26",9058931,"27",3127683,"28",2210004,"29",14141626,"31",20539989,"32",3833712,
+    "33",16055174,"35",44411238,"41",11444380,"42",7610361,"43",10882965,"50",2757013,
+    "51",3658649,"52",7056495,"53",2817381)
+
+  conf <- chik |>
+    filter(classificacao == "Chikungunya confirmada", ano %in% 2023:2024)
+
+  # Faixas de incidencia (estilo boletim): legiveis e robustas a municipios
+  # minusculos, onde poucos casos gerariam taxas extremas.
+  faixas  <- c(0, 10, 50, 100, 300, Inf)
+  rotulos <- c("< 10", "10 a 50", "50 a 100", "100 a 300", "300+")
+  cores_faixa <- c("#e6eef3", "#9dc0d2", "#5f97b4", "#03658c", "#02405a")
+  em_faixa <- function(x) cut(x, breaks = faixas, labels = rotulos,
+                              right = FALSE, include.lowest = TRUE)
+
+  mapa_uf <- geo_uf |>
+    mutate(uf = str_pad(as.character(code_state), 2, "left", "0")) |>
+    left_join(conf |> mutate(uf = str_pad(as.character(uf), 2, "left", "0")) |>
+                count(uf, name = "casos"), by = "uf") |>
+    left_join(pop_uf, by = "uf") |>
+    mutate(casos = coalesce(casos, 0L), incidencia = casos / populacao * 1e5,
+           faixa = em_faixa(incidencia))
+
+  mapa_mun <- geo_mun |>
+    mutate(cod6 = str_sub(as.character(code_muni), 1, 6)) |>
+    left_join(conf |> mutate(cod6 = str_pad(as.character(municipio_ibge), 6, "left", "0")) |>
+                count(cod6, name = "casos"), by = "cod6") |>
+    left_join(select(pop_mun, cod6, populacao), by = "cod6") |>
+    mutate(casos = coalesce(casos, 0L), incidencia = casos / populacao * 1e5,
+           faixa = em_faixa(incidencia))
+
+  tema_mapa <- function() tema_epic95() +
+    theme(axis.text = element_blank(), axis.title = element_blank(),
+          panel.grid = element_blank())
+}
+```
+
+```{r}
+#| label: aviso-mapa
+#| echo: false
+#| output: asis
+#| eval: !expr '!tem_mapa'
+cat("> Os mapas não foram gerados porque falta a base espacial. Rode",
+    "`R/00_preparar_dados.R` (para ter `uf` e `municipio_ibge`) e",
+    "`recursos/preparar_mapas.R` (para as malhas do IBGE), depois renderize de novo.")
+```
+
+```{r}
+#| label: fig-mapa-uf
+#| fig-cap: "Taxa de incidência de chikungunya confirmada por 100 mil habitantes, por Unidade da Federação (2023-2024)."
+#| fig-width: 7
+#| fig-height: 6
+#| eval: !expr tem_mapa
+ggplot(mapa_uf) +
+  geom_sf(aes(fill = faixa), color = "white", linewidth = 0.15) +
+  scale_fill_manual(values = cores_faixa, drop = FALSE, na.value = "grey85") +
+  labs(fill = "Por 100 mil hab.") +
+  tema_mapa()
+```
+
+```{r}
+#| label: fig-mapa-mun
+#| fig-cap: "Taxa de incidência de chikungunya confirmada por 100 mil habitantes, por município (2023-2024). As linhas brancas são as divisas estaduais."
+#| fig-width: 7
+#| fig-height: 6
+#| eval: !expr tem_mapa
+ggplot(mapa_mun) +
+  geom_sf(aes(fill = faixa), color = NA) +
+  geom_sf(data = geo_uf, fill = NA, color = "white", linewidth = 0.2) +
+  scale_fill_manual(values = cores_faixa, drop = FALSE, na.value = "grey90") +
+  labs(fill = "Por 100 mil hab.") +
+  tema_mapa()
+```
+
+Os dois mapas contam a mesma história em escalas diferentes. No mapa por UF, a cor
+separa os estados de maior incidência por habitante daqueles de circulação discreta.
+O mapa municipal afina o retrato: dentro de um mesmo estado, poucos municípios
+costumam concentrar a maior parte da carga, enquanto a vizinhança permanece clara. É
+esse contraste, e não a contagem absoluta, que aponta para onde a vigilância deve
+olhar primeiro.
+
 ## Modelo de regressão
 
 O bloco abaixo ajusta a regressão de Poisson. A população entra como *offset*,
@@ -347,7 +470,10 @@ população regional ilustrativa, não a estimativa oficial. O modelo é
 deliberadamente simples: compara apenas regiões, sem ajustar por idade, sexo,
 tendência temporal ou dependência espacial, e trata as observações como
 independentes. Razões de taxas dessa forma descrevem a diferença bruta entre
-regiões, não um efeito causal.
+regiões, não um efeito causal. Nos mapas, a taxa municipal usa a população do Censo
+2022 como denominador e fica instável nos municípios pequenos, onde poucos casos já
+produzem taxas altas. Por isso a leitura em faixas, e não no valor exato de cada
+município.
 
 Apesar disso, o fluxo é inteiramente reprodutível e pode ser reexecutado sobre
 dados atualizados a cada nova extração, o que o torna útil para a vigilância de
@@ -386,5 +512,9 @@ sessionInfo()
   DATASUS. <https://datasus.saude.gov.br>
 - OpenDataSUS. Portal de Dados Abertos do SUS. Arboviroses.
   <https://opendatasus.saude.gov.br>
+- IBGE. Censo Demográfico 2022: população residente por município.
+  <https://sidra.ibge.gov.br> (tabela 4714)
+- Pereira RHM, Gonçalves CN et al. *geobr: Download Official Spatial Data Sets of
+  Brazil*. IPEA. <https://ipeagit.github.io/geobr>
 - Posit PBC. *Quarto* e *Positron IDE*. <https://quarto.org> ·
   <https://positron.posit.co>

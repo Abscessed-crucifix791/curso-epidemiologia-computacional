@@ -16,6 +16,7 @@ essenciais <- c(
   "dplyr", "tidyr", "stringr", "lubridate", "forcats", "janitor",  # limpeza
   "ggplot2",    # graficos
   "gt", "gtsummary", "flextable",  # tabelas
+  "sf", "geobr",  # mapas do Brasil (contornos oficiais do IBGE)
   "quarto"      # renderizar o relatorio
 )
 
@@ -37,4 +38,20 @@ if (file.exists("renv.lock")) {
   }
 }
 
-message("\nPronto. Agora abra 'relatorio/relatorio-chikungunya.qmd' e clique em Render.")
+# ---- Pacotes dos mapas (sf e geobr) -----------------------------------------
+# Estes dois entraram depois do renv.lock original, entao o restore acima pode
+# nao traze-los. Garantimos aqui: se faltarem, instala. Depois de instalar pela
+# primeira vez, rode renv::snapshot() UMA VEZ para grava-los no renv.lock.
+mapas <- c("sf", "geobr")
+faltam_mapas <- mapas[!mapas %in% rownames(installed.packages())]
+if (length(faltam_mapas) > 0) {
+  message("Instalando os pacotes dos mapas: ", paste(faltam_mapas, collapse = ", "))
+  install.packages(faltam_mapas)
+  message("Feito. Rode renv::snapshot() para travar sf e geobr no renv.lock.")
+} else {
+  message("Pacotes dos mapas (sf, geobr) ja instalados.")
+}
+
+message("\nPronto. Proximos passos:")
+message("  1) Rode uma vez  source(here::here('recursos', 'preparar_mapas.R'))  para baixar os contornos do Brasil.")
+message("  2) Abra 'relatorio/relatorio-chikungunya.qmd' e clique em Render.")

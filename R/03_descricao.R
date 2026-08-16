@@ -6,12 +6,14 @@
 # Descreve o dado de chikungunya pelo arcabouco classico da epidemiologia:
 # PESSOA, TEMPO e LUGAR. Quem adoece, quando os casos acontecem e onde se
 # concentram. Produz (1) a Tabela 1 com gtsummary (pessoa), (2) a serie mensal
-# de casos (tempo) e (3) dois retratos do lugar: barras de classificacao por
-# regiao e um mapa de calor de regiao por mes. Tudo na paleta EPIC95.
+# de casos (tempo) e (3) o retrato do lugar em quatro cortes: barras de
+# classificacao por regiao, um mapa de calor de regiao por mes e dois mapas
+# coropleticos do Brasil (por UF e por municipio) com a taxa de incidencia.
+# Tudo na paleta EPIC95.
 #
-# Um aviso de nome, para nao confundir: "mapa de calor" NAO e mapa geografico.
-# E uma grade colorida onde a cor mostra a intensidade. Este projeto nao usa
-# mapa de contorno (shapefile); o retrato do lugar aqui e regiao no eixo.
+# Um aviso de nome, para nao confundir: o "mapa de calor" da secao 7 NAO e mapa
+# geografico. E uma grade colorida onde a cor mostra a intensidade. O mapa de
+# contorno, com o desenho do Brasil, vem na secao 8, com o pacote geobr.
 #
 # Fonte do dado: SINAN arboviroses (febre de chikungunya), 2023 a 2025,
 # Portal de Dados Abertos do SUS.
@@ -171,6 +173,131 @@ ggplot(calor, aes(x = mes_nome, y = regiao, fill = n)) +
   ) +
   tema_epic95()
 
-# Descricao pronta: pessoa (Tabela 1), tempo (serie mensal) e lugar (barras e
-# mapa de calor). No 04_modelo_serie.R a gente sai da descricao e entra no
-# modelo e na decomposicao da serie.
+# ---- 8. LUGAR (parte 3): mapas coropleticos do Brasil -----------------------
+# Ate aqui o "lugar" foi a regiao no eixo de um grafico. Agora desenhamos o Brasil
+# de verdade, com contorno geografico, e pintamos cada area pela TAXA DE
+# INCIDENCIA de chikungunya confirmada por 100 mil habitantes (anos fechados de
+# 2023 e 2024). Dois recortes: por UF (27 areas) e por municipio (5.570 areas). A
+# cor mostra onde a doenca circulou com mais intensidade POR HABITANTE, e nao onde
+# simplesmente ha mais gente. E o mesmo salto da barra de incidencia por regiao do
+# relatorio, agora no mapa: da pra ver o foco de um relance.
+#
+# As malhas (contornos) vem do pacote geobr, que entrega os limites oficiais do
+# IBGE. Para nao depender do download na hora do curso, rode UMA VEZ, com internet,
+# o recursos/preparar_mapas.R: ele salva os contornos em recursos/*.rds. O codigo
+# abaixo le esses arquivos (rede de seguranca file.exists) e so baixa ao vivo se
+# eles nao existirem.
+
+library(sf)         # dados espaciais: o mapa e uma tabela com uma coluna geometry
+
+# 8.1 Carregar as malhas: do .rds pre-baixado ou, se faltar, ao vivo do geobr.
+carregar_malha <- function(arquivo, baixar) {
+  caminho <- here("recursos", arquivo)
+  if (file.exists(caminho)) {
+    readRDS(caminho)
+  } else {
+    message("Malha ", arquivo, " ausente; baixando do geobr (precisa de internet)...")
+    baixar()
+  }
+}
+geo_uf  <- carregar_malha("geo_uf.rds",
+  function() geobr::read_state(year = 2020, simplified = TRUE, showProgress = FALSE))
+geo_mun <- carregar_malha("geo_municipios.rds",
+  function() geobr::read_municipality(year = 2020, simplified = TRUE, showProgress = FALSE))
+
+# 8.2 Denominador: populacao residente (IBGE, Censo 2022).
+# O SINAN traz o codigo do municipio com 6 digitos; o geobr e o arquivo de
+# populacao usam o codigo de 7 digitos (o 7o e digito verificador). Para os
+# codigos casarem, cortamos o 7o digito com str_sub(x, 1, 6) dos dois lados.
+pop_mun <- read_csv(here("recursos", "populacao_municipios_2022.csv"),
+                    show_col_types = FALSE) |>
+  mutate(cod6 = str_sub(as.character(cod_ibge7), 1, 6))
+
+pop_uf <- tribble(
+  ~uf,  ~populacao,
+  "11",  1581196, "12",   830018, "13",  3941613, "14",   636707,
+  "15",  8120131, "16",   733759, "17",  1511460, "21",  6776699,
+  "22",  3271199, "23",  8794957, "24",  3302729, "25",  3974687,
+  "26",  9058931, "27",  3127683, "28",  2210004, "29", 14141626,
+  "31", 20539989, "32",  3833712, "33", 16055174, "35", 44411238,
+  "41", 11444380, "42",  7610361, "43", 10882965, "50",  2757013,
+  "51",  3658649, "52",  7056495, "53",  2817381
+)
+
+# 8.3 Numerador: casos confirmados por UF e por municipio (2023-2024).
+chik_conf <- chik |>
+  filter(classificacao == "Chikungunya confirmada", ano %in% 2023:2024)
+
+casos_uf <- chik_conf |>
+  mutate(uf = str_pad(as.character(uf), 2, "left", "0")) |>
+  count(uf, name = "casos")
+
+casos_mun <- chik_conf |>
+  mutate(cod6 = str_pad(as.character(municipio_ibge), 6, "left", "0")) |>
+  count(cod6, name = "casos")
+
+# 8.4 Faixas de incidencia (estilo boletim). Agrupar em faixas deixa o mapa
+# legivel e evita que um municipio minusculo, com poucos casos e taxa altissima,
+# domine toda a escala de cor. Do claro (pouca incidencia) ao escuro (muita).
+faixas  <- c(0, 10, 50, 100, 300, Inf)
+rotulos <- c("< 10", "10 a 50", "50 a 100", "100 a 300", "300+")
+cores_faixa <- c("#e6eef3", "#9dc0d2", "#5f97b4", "#03658c", "#02405a")
+
+em_faixa <- function(incidencia) {
+  cut(incidencia, breaks = faixas, labels = rotulos,
+      right = FALSE, include.lowest = TRUE)
+}
+
+tema_mapa <- function() {
+  tema_epic95() +
+    theme(axis.text = element_blank(), axis.title = element_blank(),
+          panel.grid = element_blank())
+}
+
+# 8.5 Mapa por UF: junta casos e populacao na malha e calcula a taxa.
+mapa_uf <- geo_uf |>
+  mutate(uf = str_pad(as.character(code_state), 2, "left", "0")) |>
+  left_join(casos_uf, by = "uf") |>
+  left_join(pop_uf,   by = "uf") |>
+  mutate(casos = coalesce(casos, 0L),
+         incidencia = casos / populacao * 1e5,
+         faixa = em_faixa(incidencia))
+
+ggplot(mapa_uf) +
+  geom_sf(aes(fill = faixa), color = "white", linewidth = 0.15) +
+  scale_fill_manual(values = cores_faixa, drop = FALSE, na.value = "grey85") +
+  labs(
+    title = "Incidencia de chikungunya por Unidade da Federacao",
+    subtitle = "Casos confirmados por 100 mil hab., 2023-2024 (SINAN)",
+    fill = "Por 100 mil hab."
+  ) +
+  tema_mapa()
+
+# 8.6 Mapa por municipio: mesma logica, 5.570 areas. Os municipios sem caso
+# notificado ficam com taxa zero (a cor mais clara), o que ja aponta os focos.
+mapa_mun <- geo_mun |>
+  mutate(cod6 = str_sub(as.character(code_muni), 1, 6)) |>
+  left_join(casos_mun, by = "cod6") |>
+  left_join(select(pop_mun, cod6, populacao), by = "cod6") |>
+  mutate(casos = coalesce(casos, 0L),
+         incidencia = casos / populacao * 1e5,
+         faixa = em_faixa(incidencia))
+
+ggplot(mapa_mun) +
+  geom_sf(aes(fill = faixa), color = NA) +
+  geom_sf(data = geo_uf, fill = NA, color = "white", linewidth = 0.2) +  # divisa das UFs
+  scale_fill_manual(values = cores_faixa, drop = FALSE, na.value = "grey90") +
+  labs(
+    title = "Incidencia de chikungunya por municipio",
+    subtitle = "Casos confirmados por 100 mil hab., 2023-2024 (SINAN)",
+    fill = "Por 100 mil hab."
+  ) +
+  tema_mapa()
+
+# Dica de IA: peca ao Gemini CLI para transformar o mapa por UF em mapa por
+# municipio (mesma paleta e faixas), ou para trocar as faixas de incidencia.
+# Confira se a legenda e as cores batem. Veja ia/PROMPTS.md (Etapa 3).
+
+# Descricao pronta: pessoa (Tabela 1), tempo (serie mensal) e lugar (barras, mapa
+# de calor e os dois mapas do Brasil). No 04_modelo_serie.R a gente sai da
+# descricao e entra no modelo e na decomposicao da serie.

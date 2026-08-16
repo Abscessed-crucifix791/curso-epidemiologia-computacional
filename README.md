@@ -50,6 +50,19 @@ source("bootstrap.R")
 Ele instala ou restaura os pacotes que o projeto usa. Na primeira vez pode levar
 alguns minutos. É normal.
 
+### 2.5. Prepare os mapas (uma vez, com internet)
+
+Os dois mapas do Brasil usam os contornos oficiais do IBGE, baixados pelo pacote
+`geobr`. Para o projeto abrir depois sem depender de download, baixe os contornos
+uma vez, no **Console**:
+
+```r
+source(here::here("recursos", "preparar_mapas.R"))
+```
+
+Ele salva as malhas em `recursos/geo_uf.rds` e `recursos/geo_municipios.rds`. Feito
+isso, os mapas do `R/03_descricao.R` e do relatório abrem offline.
+
 ### 3. Gere o relatório
 
 Abra o arquivo `relatorio/relatorio-chikungunya.qmd` e clique em **Render**, no
@@ -81,6 +94,8 @@ projeto-chikungunya/
     relatorio-chikungunya.qmd o documento que gera HTML, Word e PDF
   recursos/
     epic95_paleta.R           as cores do curso para os graficos
+    preparar_mapas.R          baixa os contornos do Brasil (rode uma vez)
+    populacao_municipios_2022.csv  populacao por municipio (IBGE, Censo 2022)
   ia/
     GEMINI.md                 a memoria do projeto para o assistente de IA
     PROMPTS.md                exemplos de pedidos usados em cada etapa

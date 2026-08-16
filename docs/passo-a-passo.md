@@ -45,9 +45,10 @@ detalhe técnico. Todo indicador que a gente calcular carrega essas ressalvas.
 
 Com o dado limpo, descrevemos. A epidemiologia descritiva tem um arcabouço de mais
 de um século: pessoa, tempo e lugar. Quem adoece (idade, sexo), quando os casos
-acontecem (a curva no tempo) e onde se concentram (a região). A Tabela 1 responde
-à pessoa, a série mensal ao tempo, o mapa de calor e as barras por região ao
-lugar.
+acontecem (a curva no tempo) e onde se concentram (a região e o mapa). A Tabela 1
+responde à pessoa, a série mensal ao tempo, e o lugar ganha quatro cortes: as
+barras por região, o mapa de calor de região por mês e dois mapas do Brasil, um por
+UF e outro por município, com a taxa de incidência por 100 mil habitantes.
 
 **Por que isso é epidemiologia.** A descrição é o primeiro produto da vigilância e
 o mais lido. Antes de qualquer modelo, ela já responde muita coisa: a chikungunya
