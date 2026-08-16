@@ -158,6 +158,74 @@ por tempo, a data de notificação; e por lugar, a região de residência. A
 distribuição por região aparece agregada nas seções seguintes, e a distribuição
 temporal, na série mensal ao fim dos Resultados.
 
+A @tbl-descritiva abre a caracterização pela pessoa, a primeira pergunta da tríade
+descritiva. Ela resume sexo, idade, faixa etária e evolução, e quebra o quadro entre
+mulheres e homens. Não testa hipótese: retrata quem está no dado, que é como todo
+boletim e todo artigo começam.
+
+```{r}
+#| label: perfil-setup
+library(gtsummary)
+# So monta a Tabela 1 se as colunas de pessoa existirem. A rede de seguranca
+# sintetica dos Metodos nao as tem, entao o relatorio segue sem a tabela.
+tem_pessoa <- all(c("sexo", "idade", "faixa_etaria", "evolucao") %in% names(chik))
+```
+
+```{r}
+#| label: tbl-descritiva
+#| tbl-cap: "Caracterização dos casos notificados de chikungunya, no total e por sexo (2023-2025)."
+#| eval: !expr tem_pessoa
+chik |>
+  mutate(sexo = na_if(sexo, "Ignorado")) |>   # "Ignorado" e ausencia, nao categoria
+  filter(!is.na(sexo)) |>
+  select(sexo, idade, faixa_etaria, classificacao, evolucao) |>
+  tbl_summary(
+    by = sexo,
+    label = list(
+      idade         ~ "Idade (anos)",
+      faixa_etaria  ~ "Faixa etária",
+      classificacao ~ "Classificação do caso",
+      evolucao      ~ "Evolução"
+    )
+  ) |>
+  add_overall() |>
+  modify_header(label ~ "**Característica**")
+```
+
+```{r}
+#| label: aviso-pessoa
+#| echo: false
+#| output: asis
+#| eval: !expr '!tem_pessoa'
+cat("> A Tabela 1 não foi gerada porque a base carregada não traz as colunas de",
+    "pessoa (sexo, idade, faixa etária). Rode `R/00_preparar_dados.R` e renderize",
+    "de novo.")
+```
+
+A leitura por pessoa costuma mostrar concentração em adultos, com discreto
+predomínio feminino, o padrão esperado da chikungunya pela exposição ao vetor e pela
+busca de atendimento. A coluna de evolução, com a maioria de curas, e a linha de
+classificação preparam a próxima leitura: a positividade por região.
+
+A @fig-classificacao mostra a classificação final dentro de cada região, em
+proporção. Com as barras somando 100%, o que se compara é a fatia de confirmados, e
+não o total de notificações. Onde essa fatia é maior, a positividade é mais alta, o
+que pode refletir circulação mais intensa do vírus ou maior acesso ao diagnóstico. A
+figura levanta a pergunta; a investigação decide qual explicação vale.
+
+```{r}
+#| label: fig-classificacao
+#| fig-cap: "Classificação final do caso de chikungunya por região, em proporção dentro de cada região (2023-2025)."
+#| fig-width: 7
+#| fig-height: 4
+ggplot(chik, aes(x = regiao, fill = classificacao)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_epic95() +
+  labs(x = NULL, y = "Proporção", fill = "Classificação") +
+  tema_epic95()
+```
+
 Os blocos abaixo partem do `chik` carregado nos Métodos. Para o indicador e o
 modelo, agregamos os casos confirmados por região, nos anos fechados de 2023 e
 2024, e juntamos a uma população por região (IBGE, ilustrativa). O ano de 2025
@@ -446,6 +514,76 @@ período, com meses de maior e de menor volume, e a cauda de 2025 despenca. Essa
 queda final acompanha o atraso de notificação e não deve ser lida como redução
 real de casos.
 
+## Decomposição da série (STL)
+
+A curva bruta mistura três coisas: a tendência de fundo, a repetição sazonal a cada
+ano e o que sobra. A decomposição STL (Seasonal-Trend decomposition using Loess)
+separa esses componentes sem instalar nada além do R base. Ela precisa saber o
+tamanho do ciclo, doze meses para uma série mensal, e exige ao menos dois ciclos
+completos, que a série de 2023 a 2025 tem de sobra. Antes de decompor, a série é
+completada mês a mês, com zero nos meses sem caso, para o ciclo não sair desalinhado.
+
+```{r}
+#| label: fig-stl
+#| fig-cap: "Decomposição STL da série mensal de chikungunya: o dado observado, a sazonalidade, a tendência e o resto."
+#| fig-width: 8
+#| fig-height: 6.5
+library(tidyr)
+
+# Grade completa de meses; mes sem caso vira 0, para nao encolher o eixo do tempo.
+serie_completa <- tibble(mes = seq(min(serie$mes), max(serie$mes), by = "month")) |>
+  left_join(serie, by = "mes") |>
+  mutate(casos = replace_na(casos, 0)) |>
+  arrange(mes)
+
+serie_ts <- ts(serie_completa$casos, frequency = 12,
+               start = c(year(min(serie_completa$mes)), month(min(serie_completa$mes))))
+
+decomp <- stl(serie_ts, s.window = "periodic")
+plot(decomp, main = "Decomposição STL da série de chikungunya")
+```
+
+Os três painéis abaixo do dado contam a história. O componente **sazonal** repete o
+mesmo desenho a cada ano, com o pico nos primeiros meses, quando o calor e a chuva
+adensam o *Aedes*. A **tendência** sobe de 2023 ao pico de 2024 e depois cede. Aqui
+mora a armadilha: essa queda no fim não é recuo da doença, é o 2025 incompleto. O
+método separa tendência e sazonalidade com honestidade, mas não sabe que os meses
+mais recentes ainda vão receber notificações atrasadas. O **resto** guarda o que
+foge do padrão, os meses que destoam do esperado e mereceriam um olhar.
+
+A regra prática vale para qualquer série de notificação: nunca leia a ponta como
+tendência epidemiológica. Antes de afirmar que os casos caíram, pergunte se o
+período já fechou. É por isso que boletins sérios marcam os últimos meses como dados
+sujeitos a revisão.
+
+## Casos por região e mês
+
+O mapa de calor cruza as duas leituras que interessam à vigilância, o lugar e a
+sazonalidade, numa figura só. Cada célula é uma região em um mês do calendário, e a
+cor mostra a intensidade de casos: quanto mais forte, mais casos naquele cruzamento.
+
+```{r}
+#| label: fig-calor
+#| fig-cap: "Casos de chikungunya por região e mês do calendário (2023-2025). Cor mais forte indica mais casos."
+#| fig-width: 8
+#| fig-height: 4
+calor <- chik |>
+  mutate(mes_num = month(dt_notificacao)) |>
+  count(regiao, mes_num) |>
+  mutate(mes_nome = factor(month.abb[mes_num], levels = month.abb))
+
+ggplot(calor, aes(x = mes_nome, y = regiao, fill = n)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "#e6eef3", high = epic95_cores[["secundaria"]]) +
+  labs(x = NULL, y = NULL, fill = "Casos") +
+  tema_epic95()
+```
+
+A leitura casa com a série decomposta: os blocos escuros se concentram nos primeiros
+meses do ano, e não de modo uniforme entre as regiões. Onde a cor carrega, ali a
+vigilância olha primeiro, tanto no tempo (o mês de maior risco) quanto no lugar (a
+região que puxa a carga).
+
 # Discussão
 
 O achado principal é a diferença de incidência entre as regiões do país. A região
@@ -458,6 +596,8 @@ Introdução.
 O padrão temporal é coerente com o que se espera de uma arbovirose de *Aedes
 aegypti*. A transmissão acompanha a densidade do vetor, que sobe no período quente
 e chuvoso, então a série mensal tende a formar picos sazonais nesses meses. A
+decomposição STL isolou essa sazonalidade da tendência de fundo, e a queda da
+tendência no fim da série reflete o 2025 incompleto, não um recuo real da doença. A
 concentração de casos em adultos, sobretudo na população economicamente ativa,
 também é o esperado para a chikungunya, pela exposição ao vetor e pelo padrão de
 busca por atendimento.
